@@ -1,3 +1,4 @@
+import os
 import uuid
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException
 from pydantic import BaseModel
@@ -19,30 +20,35 @@ async def ingest_file(file: UploadFile = File(...)):
     Returns the job ID instantly.
     """
     job_id = uuid.uuid4()
-    
     # 1. Store/Extract initial text
     # In reality you might save to S3 or a temp dir and pass the path,
     # but for text files we can extract in memory:
-    content = ""
-    if file.filename and (file.filename.endswith(".txt") or file.filename.endswith(".md")):
-        content_bytes = await file.read()
-        content = content_bytes.decode("utf-8")
-    else:
-        # Stub logic for PDF extraction, etc.
-        content = f"Mocked extraction for {file.filename}"
+    # 1. Save File to Disk (dist)
+    UPLOAD_DIR = "uploads"
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
 
-    # 2. Database interaction (mocked context manager)
+    file_path = ""
+    if file.filename:
+        file_path = os.path.join(UPLOAD_DIR, f"{job_id}_{file.filename}")
+        with open(file_path, "wb") as buffer:
+            import shutil
+            shutil.copyfileobj(file.file, buffer)
+
+    # 2. Database interaction
+    # Here is where you save the job, and you can also save the file_path into the metadata or a new DB column!
     # db: Session = next(get_db())
     # new_job = IngestionJob(id=job_id, status="pending", source_type="file")
     # db.add(new_job)
     # db.commit()
 
     # 3. Fire Celery task
+    # Instead of extracting text now, we pass the file_path so the background worker extracts text!
     process_ingestion_task.delay(
         job_id=str(job_id),
-        text_content=content,
+        text_content="",  # Worker will parse this from the file!
         source_type="file",
-        metadata={"filename": file.filename}
+        metadata={"filename": file.filename, "file_path": file_path}
     )
 
     return JobResponse(

@@ -1,31 +1,29 @@
 from typing import List
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 class ChunkingService:
     """
-    Service responsible for splitting text into smaller chunks based on size and overlap.
+    Service responsible for splitting text into smaller chunks based on size and overlap using LangChain.
     """
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
         """
-        Initialize the ChunkingService with configurable sizes.
+        Initialize the ChunkingService with configurable sizes and the LangChain text splitter.
         """
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        
+        # We use RecursiveCharacterTextSplitter as the production standard for semantic chunking
+        self.splitter = RecursiveCharacterTextSplitter(
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            separators=["\n\n", "\n", " ", ""] # Tries to split by paragraphs first, then sentences, then spaces
+        )
 
     def split_text(self, text: str) -> List[str]:
         """
-        Splits text into ordered chunks. 
-        A production implementation might use LangChain or similar text splitters.
+        Splits text into ordered, semantic chunks using LangChain.
         """
         if not text:
             return []
             
-        chunks = []
-        start_idx = 0
-        text_length = len(text)
-
-        while start_idx < text_length:
-            end_idx = min(start_idx + self.chunk_size, text_length)
-            chunks.append(text[start_idx:end_idx])
-            start_idx += (self.chunk_size - self.chunk_overlap)
-
-        return chunks
+        return self.splitter.split_text(text)
