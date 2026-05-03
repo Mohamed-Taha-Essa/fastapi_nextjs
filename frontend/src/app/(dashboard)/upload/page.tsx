@@ -40,7 +40,7 @@ export default function UploadPage() {
         formData.append("file", file); // Must match backend expects exactly
 
         try {
-            const res = await api.post("/api/v1/ingest/upload", formData, {
+            const res = await api.post("/api/v1/ingestion/files", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data", // Crucial for files
                 },

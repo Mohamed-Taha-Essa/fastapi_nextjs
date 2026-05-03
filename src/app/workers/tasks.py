@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session # type: ignore
 from app.workers.celery_app import celery_app
 from app.models.ingestion_job import IngestionJob
 from app.services.chunking_service import ChunkingService
-from app.services.embedding_service import EmbeddingService
+from app.services.embedding_service import OnlineEmbeddingService
 from app.services.vector_store_service import VectorStoreService
 from app.services.ingestion_service import IngestionService
 from app.db.database import SessionLocal
@@ -66,7 +66,7 @@ def process_ingestion_task(self, job_id: str, text_content: str, source_type: st
 
         chunking_svc = ChunkingService(chunk_size=settings.chunk_size, chunk_overlap=settings.chunk_overlap)
         # We rely on the default fast HuggingFace model inside EmbeddingService
-        embedding_svc = EmbeddingService(model_name=settings.embeding_model_name)
+        embedding_svc = OnlineEmbeddingService(model_name=settings.embeding_model_name)
         vector_store_svc = VectorStoreService(db_client=vector_db_client, collection_name=settings.vector_db_name)
 
         ingestion_svc = IngestionService(

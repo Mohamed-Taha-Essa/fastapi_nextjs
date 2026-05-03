@@ -9,7 +9,7 @@ from app.models.ingestion_job import IngestionJob
 # from app.db.session import get_db
 from sqlalchemy.orm import Session # type: ignore
 
-router = APIRouter(prefix="/api/ingestion", tags=["Ingestion"])
+router = APIRouter(prefix="/ingestion", tags=["Ingestion"])
 
 from app.schemas.ingestion_schema import SourceRequest, JobResponse, JobStatusResponse
 

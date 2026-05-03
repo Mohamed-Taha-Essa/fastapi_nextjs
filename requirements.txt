@@ -10,6 +10,7 @@ alembic
 
 # Auth
 passlib[bcrypt]
+bcrypt<4.1  # pinned: passlib incompatible with bcrypt 4.1+
 python-jose[cryptography]
 
 # Task Queue
@@ -28,6 +29,7 @@ langchain
 langchain-community
 langchain-huggingface
 langchain-text-splitters
+sentence-transformers
 
 # Document Loaders & Parsing
 pypdf

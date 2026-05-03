@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     #ai settings names of models and vector db 
-    embeding_model_name: str = ''
-    vector_db_name: str = ''    
+    embeding_model_name: str = 'sentence-transformers/all-MiniLM-L6-v2'
+    vector_db_name: str = 'chroma'    
     chunk_size: int = 1000
     chunk_overlap: int = 200    
-    llm_model_name: str = ''
+    llm_model_name: str = 'google/gemma-3-1b-it'
     
     #celery settings
     CELERY_BROKER_URL: str = 'redis://localhost:6379/0' #for message queue

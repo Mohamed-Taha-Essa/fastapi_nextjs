@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.ingestion_routes import router as ingestion_router
 from app.api.auth_routes import router as auth_router
+from app.api.ai_routes import router as ai_router
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -20,6 +22,11 @@ def create_app() -> FastAPI:
 
     app.include_router(
         auth_router,
+        prefix=settings.API_V1_PREFIX
+    )
+
+    app.include_router(
+        ai_router,
         prefix=settings.API_V1_PREFIX
     )
 

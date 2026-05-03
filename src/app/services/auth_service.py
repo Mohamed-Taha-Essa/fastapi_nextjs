@@ -28,6 +28,7 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
 
 def create_user(db: Session, user_data: UserCreate) -> User:
     hashed_password = get_password_hash(user_data.password)
+    print(user_data)
     db_user = User(
         email=user_data.email,
         username=user_data.username,
