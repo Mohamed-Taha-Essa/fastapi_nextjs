@@ -16,7 +16,23 @@ class Settings(BaseSettings):
     PORT: int = 8001
     DEBUG: bool = True
 
-    # database settings
+    # auth settings
+    JWT_SECRET_KEY: str = 'change-me-in-production-secret-key'
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    #ai settings names of models and vector db 
+    embeding_model_name: str = ''
+    vector_db_name: str = ''    
+    chunk_size: int = 1000
+    chunk_overlap: int = 200    
+    llm_model_name: str = ''
+    
+    #celery settings
+    CELERY_BROKER_URL: str = 'redis://localhost:6379/0' #for message queue
+    CELERY_RESULT_BACKEND: str = 'redis://localhost:6379/0' #for storing results
+    
+
+    #database settings
     DATABASE_URL: str = f"sqlite:///{os.path.join(BASE_DIR, 'my_database.db')}"
 
     model_config = SettingsConfigDict(
@@ -25,9 +41,7 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    class config:
-        env_file = ".env"
-        case_sensitive = True
+    
 
 @lru_cache
 def get_settings() -> Settings:

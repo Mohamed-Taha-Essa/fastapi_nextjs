@@ -1,0 +1,99 @@
+services:
+  # ─── PostgreSQL Database ───────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: copilot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-copilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-copilot_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-copilot_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-copilot}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis (Celery Broker + Result Backend) ────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: copilot_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379" # Changed to avoid conflict with local Redis; containers still use redis:6379 internally
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── FastAPI Backend ───────────────────────────────────────────────
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: copilot_api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-copilot}:${POSTGRES_PASSWORD:-copilot_pass}@postgres:5432/${POSTGRES_DB:-copilot_db}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - uploads_data:/app/uploads
+      - chroma_data:/app/chroma_db_data
+    working_dir: /app/src
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─── Celery Worker ─────────────────────────────────────────────────
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: copilot_celery
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-copilot}:${POSTGRES_PASSWORD:-copilot_pass}@postgres:5432/${POSTGRES_DB:-copilot_db}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - uploads_data:/app/uploads
+      - chroma_data:/app/chroma_db_data
+    working_dir: /app/src
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─── Next.js Frontend ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # The browser hits the *host* machine port — NOT the internal Docker network
+        NEXT_PUBLIC_API_URL: http://localhost:8001
+    container_name: copilot_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fastapi
+
+volumes:
+  postgres_data:
+  uploads_data:
+  chroma_data:

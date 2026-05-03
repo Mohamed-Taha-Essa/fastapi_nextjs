@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/ingestion", tags=["Ingestion"])
 from app.schemas.ingestion_schema import SourceRequest, JobResponse, JobStatusResponse
 
 @router.post("/files", response_model=JobResponse)
-async def ingest_file(file: UploadFile = File(...)):
+async def ingest_file(file: UploadFile = File(...)) -> JobResponse:
     """
     Upload a file, create an ingestion job, and delegate processing to Celery.
     Returns the job ID instantly.

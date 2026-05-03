@@ -1,10 +1,11 @@
 # db/models/chunk.py
 
-from sqlalchemy import Column, Text, Integer, ForeignKey
+from sqlalchemy import Column, Text, Integer, ForeignKey,String
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
-from db.base import Base
+from app.db.database import Base
 
 
 class Chunk(Base):
@@ -18,3 +19,7 @@ class Chunk(Base):
     chunk_index = Column(Integer, nullable=False)
 
     embedding_id = Column(String, nullable=True)  # reference to vector DB 
+    
+    # one to many relationship with document table
+    document = relationship("Document", back_populates="chunks")
+    

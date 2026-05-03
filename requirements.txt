@@ -1,0 +1,35 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+email-validator
+pydantic-settings
+
+# Migrations
+alembic
+
+# Auth
+passlib[bcrypt]
+python-jose[cryptography]
+
+# Task Queue
+celery
+redis
+
+# Database & ORM
+sqlalchemy
+psycopg2-binary
+
+# Vector Database
+chromadb
+
+# AI & Emdeddings
+langchain
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+
+# Document Loaders & Parsing
+pypdf
+unstructured
+markdown

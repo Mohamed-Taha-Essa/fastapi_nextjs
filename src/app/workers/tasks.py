@@ -11,6 +11,7 @@ from app.services.vector_store_service import VectorStoreService
 from app.services.ingestion_service import IngestionService
 from app.db.database import SessionLocal
 from app.db.vector_db import get_vector_db
+from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Mock database dependency for the worker session
@@ -63,10 +64,10 @@ def process_ingestion_task(self, job_id: str, text_content: str, source_type: st
         
         vector_db_client = get_vector_db()
 
-        chunking_svc = ChunkingService(chunk_size=1000, chunk_overlap=200)
+        chunking_svc = ChunkingService(chunk_size=settings.chunk_size, chunk_overlap=settings.chunk_overlap)
         # We rely on the default fast HuggingFace model inside EmbeddingService
-        embedding_svc = EmbeddingService()
-        vector_store_svc = VectorStoreService(db_client=vector_db_client, collection_name="ingested_documents")
+        embedding_svc = EmbeddingService(model_name=settings.embeding_model_name)
+        vector_store_svc = VectorStoreService(db_client=vector_db_client, collection_name=settings.vector_db_name)
 
         ingestion_svc = IngestionService(
             chunking_service=chunking_svc,
